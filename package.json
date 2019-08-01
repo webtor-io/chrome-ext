@@ -20,7 +20,8 @@
     "zip-folder": "^1.0.0"
   },
   "scripts": {
-    "build:prod": "node_modules/.bin/webpack --config webpack.js"
+    "dev": "node_modules/.bin/webpack-dev-server --inline --hot --stdin --progress --color -d --https --host localhost --port 5000 --config webpack.ext.chrome.dev.js --content-base extensions/chrome/build",
+    "build": "node_modules/.bin/webpack --config webpack.js"
   },
   "author": "Pavel Tatarskiy",
   "license": "ISC"
