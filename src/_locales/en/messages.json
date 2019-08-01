@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "Webtor.io - Watch torrents online",
+    "description": "The title of the application, displayed in the web store."
+  },
+  "appDesc": {
+    "message": "Any torrents are available online. Just open torrent-file and start watching absolutely free and without registration.",
+    "description": "The description of the application, displayed in the web store."
+  }
+}
