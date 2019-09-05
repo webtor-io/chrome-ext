@@ -57,16 +57,8 @@ typings/
 # dotenv environment variables file
 .env
 
-data/*
-
-test/fixtures/**/*.ts
-test/fixtures/**/*.mp4
-test/fixtures/**/*.mp3
-
-extensions/chrome/build
-
-*.retry
-
-.vagrant
-
 .DS_Store
+
+dist
+
+dist.zip

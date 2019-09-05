@@ -95,7 +95,7 @@ module.exports = {
       chunks: ['background'],
     }),
     new WebappWebpackPlugin({
-      logo: `svg-fill-loader!./src/logo.svg?fill=${style.colors.primary}`,
+      logo: `svg-transform-loader!./src/logo.svg?fill=${style.colors.primary}`,
       prefix: 'icons/',
       inject: 'none',
     }),
