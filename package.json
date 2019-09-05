@@ -2,7 +2,6 @@
   "name": "webtor.io",
   "version": "0.1.10",
   "description": "Any torrents are available online. Just open torrent-file and start watching absolutely free and without registration.",
-  "dependencies": {},
   "devDependencies": {
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.0.4",
@@ -10,6 +9,7 @@
     "fs-extra": "^8.1.0",
     "html-webpack-plugin": "^3.2.0",
     "jimp": "^0.6.4",
+    "lodash": "^4.17.15",
     "on-build-webpack": "^0.1.0",
     "query-string": "^6.8.2",
     "svg-fill-loader": "^0.0.8",
