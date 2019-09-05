@@ -20,7 +20,6 @@ module.exports = {
   devtool: 'source-map',
   entry: {
     popup: './src/js/popup.js',
-    options: './src/js/options.js',
     background: './src/js/background.js',
     inject: './src/js/inject.js',
   },
@@ -87,11 +86,6 @@ module.exports = {
       template: './src/popup.html',
       filename: 'popup.html',
       chunks: ['popup'],
-    }),
-    new HTMLWebpackPlugin({
-      template: './src/options.html',
-      filename: 'options.html',
-      chunks: ['options'],
     }),
     new HTMLWebpackPlugin({
       template: './src/background.html',
