@@ -6,7 +6,7 @@ const WebpackOnBuildPlugin = require('on-build-webpack');
 const WebappWebpackPlugin = require('webapp-webpack-plugin');
 const Jimp = require('jimp');
 const fs = require('fs-extra');
-const zipFolder = require('zip-folder');
+const archiver = require('archiver');
 const path = require('path');
 const outputPath = path.resolve(__dirname, 'dist')
 const style  = {
@@ -59,10 +59,14 @@ module.exports = {
       await fs.move(`${outputPath}/icons/favicon-32x32.png`, `${outputPath}/favicon-32x32.png`);
       await fs.remove(`${outputPath}/icons`);
       await new Promise(function(resolve, reject) {
-        zipFolder(outputPath, `${outputPath}.zip`, function(err) {
-          if(err) return reject(err);
+        const output = fs.createWriteStream(`${outputPath}.zip`);
+        const archive = archiver('zip');
+        output.on('close', function() {
           resolve();
         });
+        archive.pipe(output);
+        archive.directory(outputPath, false);
+        archive.finalize();
       });
     }),
     new CopyWebpackPlugin([{
