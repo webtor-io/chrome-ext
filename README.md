@@ -21,4 +21,5 @@ To fix issues with handling torrent downloads you should:
 2. Find Webtor.io extension
 3. Click "Details"
 4. Activate "Allow Access to file URLs"
+
 In this case extension will load torrent file directly from disk without any issues.
