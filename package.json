@@ -1,6 +1,6 @@
 {
   "name": "webtor.io",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Any torrents are available online. Just open torrent-file and start watching absolutely free and without registration.",
   "devDependencies": {
     "archiver": "^3.1.1",
