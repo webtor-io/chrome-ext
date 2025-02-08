@@ -1,1 +1,1 @@
-  chrome.tabs.create({'url': 'https://webtor.io'});
+chrome.tabs.create({'url': 'https://webtor.io'});

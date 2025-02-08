@@ -1,27 +1,31 @@
 import queryString from 'query-string';
 import loadTorrentById from './lib/loadTorrentById';
-const debug = require('debug')('webtor:ext:background');
 
 function openTab({magnet, downloadId}) {
-  chrome.tabs.create({'url': 'https://webtor.io/show?' + queryString.stringify({magnet, downloadId})}, function(window) {
-  });
+  chrome.tabs.create({
+      url: 'https://webtor.io/show?' + queryString.stringify({magnet, downloadId})
+  }, function(window) {});
 }
 
-chrome.runtime.onConnect.addListener((port) => {
-  port.onMessage.addListener(async(msg) => {
-    if (msg.url) {
-      openTab({magnet: msg.url});
+chrome.runtime.onMessage.addListener(async (msg) => {
+  if (msg.url) {
+    openTab({magnet: msg.url});
+  }
+  if (msg.downloadId) {
+    const torrent = await loadTorrentById(msg.downloadId);
+    if (torrent) {
+      console.log('post message torrent', torrent);
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+        const uint8Array = new Uint8Array(torrent);
+        const arr = Array.from(uint8Array);
+        chrome.tabs.sendMessage(tabs[0].id, {torrent: arr}, function(response) {
+          console.log('Message sent with torrent data', arr);
+        });
+      });
+    } else {
+      console.log('no torrent');
     }
-    if (msg.downloadId) {
-      const torrent = await loadTorrentById(msg.downloadId);
-      if (torrent) {
-        debug('port post message torrent=%o', torrent);
-        port.postMessage({torrent});
-      } else {
-        debug('no torrent');
-      }
-    }
-  });
+  }
 });
 
 chrome.downloads.onChanged.addListener(async function(item) {

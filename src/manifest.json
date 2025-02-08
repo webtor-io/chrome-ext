@@ -3,24 +3,26 @@
   "description": "__MSG_appDesc__",
   "default_locale": "en",
   "background": {
-    "page": "background.html"
+    "service_worker": "background.bundle.js",
+    "type": "module"
   },
   "content_scripts": [{
     "all_frames": true,
     "js": ["inject.bundle.js"],
     "matches": ["http://*/*", "https://*/*"]
   }],
-  "browser_action": {
+  "action": {
     "default_popup": "popup.html",
     "default_icon": "favicon-32x32.png"
   },
   "icons": {
-    "128": "chrome-ext-128x128.png"
+    "16": "favicon-16x16.png",
+    "32": "favicon-32x32.png",
+    "48": "favicon-48x48.png",
+    "128": "favicon-128x128.png"
   },
   "permissions": [
-    "downloads",
-    "file://*"
+    "downloads"
   ],
-  "manifest_version": 2,
-  "content_security_policy": "script-src 'self' https://webtor.io https://*.webtor.io http://localhost:4000 https://localhost:4000 https://localhost:5000 'unsafe-eval'; object-src 'self'; connect-src 'self' file://* http://* https://* https://webtor.io https://*.webtor.io https://localhost:4000 wss://localhost:4000 https://localhost:5000 wss://localhost:5000 wss://webtor.io"
+  "manifest_version": 3
 }

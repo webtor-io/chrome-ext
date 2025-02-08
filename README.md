@@ -5,8 +5,8 @@ Please visit [Chrome Web Store](https://chrome.google.com/webstore/detail/webtor
 
 ## Building for use
 ```
-yarn install
-npm build
+npm install
+npm run build
 ```
 This downloads all dependencies and generates `dist` folder.
 Now you can add it to Chrome with this few steps:

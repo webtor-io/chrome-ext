@@ -62,3 +62,5 @@ typings/
 dist
 
 dist.zip
+
+.idea
