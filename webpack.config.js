@@ -41,27 +41,13 @@ module.exports = {
     }),
     {
       apply: (compiler) => {
-        compiler.hooks.afterEmit.tap('ProcessIconsPlugin', async (compilation) => {
+        compiler.hooks.afterEmit.tapAsync('ProcessIconsPlugin', async (compilation, callback) => {
           const logo = './src/images/logo.svg';
           const sizes = [16, 32, 48, 128];
           for (const size of sizes) {
             await resize(logo, size, size);
           }
-        });
-      }
-    },
-    {
-      apply: (compiler) => {
-        compiler.hooks.afterEmit.tap('ProcessArchivePlugin', async (compilation) => {
-            await new Promise(function(resolve, reject) {
-              const output = fs.createWriteStream(`${outputPath}.zip`);
-              const archive = archiver('zip');
-              output.on('close', resolve);
-              archive.on('error', reject);
-              archive.pipe(output);
-              archive.directory(outputPath, false);
-              archive.finalize();
-            });
+          callback();
         });
       }
     },
@@ -94,5 +80,21 @@ module.exports = {
       filename: 'background.html',
       chunks: ['background'],
     }),
+    {
+      apply: (compiler) => {
+        compiler.hooks.afterEmit.tapAsync('ProcessArchivePlugin', async (compilation, callback) => {
+          await new Promise(function(resolve, reject) {
+            const output = fs.createWriteStream(`${outputPath}.zip`);
+            const archive = archiver('zip');
+            output.on('close', resolve);
+            archive.on('error', reject);
+            archive.pipe(output);
+            archive.directory(outputPath, false);
+            archive.finalize();
+          });
+          callback();
+        });
+      }
+    },
   ],
 };
