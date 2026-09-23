@@ -1,6 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {isDownloadPage, downloadPageUrl, isWebtorDownload} from '../src/js/lib/webtor.js';
+import {isDownloadPage, downloadPageUrl, magnetPageUrl, isWebtorDownload} from '../src/js/lib/webtor.js';
+
+// A visit the extension opens is counted as the extension's, not as direct.
+test('the tabs the extension opens carry its utm parameters', () => {
+  const d = new URL(downloadPageUrl(42));
+  assert.equal(d.searchParams.get('id'), '42');
+  assert.equal(d.searchParams.get('utm_source'), 'chrome-ext');
+  assert.equal(d.searchParams.get('utm_medium'), 'download');
+
+  const magnet = 'magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&dn=a%20b&tr=udp://t.example:80';
+  const m = new URL(magnetPageUrl(magnet));
+  assert.equal(m.pathname, '/ext/magnet');
+  assert.equal(m.searchParams.get('url'), magnet);
+  assert.equal(m.searchParams.get('utm_source'), 'chrome-ext');
+  assert.equal(m.searchParams.get('utm_medium'), 'magnet');
+});
 
 // web-ui 302s the bare /ext/download to /<lang>/ext/download for anyone whose
 // lang cookie is not English, so the localized page must pass as well.

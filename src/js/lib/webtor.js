@@ -1,14 +1,19 @@
 export const WEBTOR_URL = 'https://webtor.io';
 
+// Every tab the extension opens says so in utm parameters, as the popup's
+// does: without them a visit from a magnet click or a .torrent download is
+// counted as direct traffic. web-ui reads only `url` and `id` on these pages.
+const UTM_SOURCE = 'chrome-ext';
+
 // Magnets go straight to /ext/magnet. The legacy /show redirect in front of
 // it re-encodes the link as "url=magnet:..." and the page then keeps only the
 // info hash, dropping trackers and the name.
 export function magnetPageUrl(magnet) {
-  return WEBTOR_URL + '/ext/magnet?' + new URLSearchParams({url: magnet});
+  return WEBTOR_URL + '/ext/magnet?' + new URLSearchParams({url: magnet, utm_source: UTM_SOURCE, utm_medium: 'magnet'});
 }
 
 export function downloadPageUrl(downloadId) {
-  return WEBTOR_URL + '/ext/download?' + new URLSearchParams({id: downloadId});
+  return WEBTOR_URL + '/ext/download?' + new URLSearchParams({id: downloadId, utm_source: UTM_SOURCE, utm_medium: 'download'});
 }
 
 // The only page allowed to ask for a downloaded .torrent is the one the
