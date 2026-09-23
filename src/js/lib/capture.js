@@ -90,10 +90,34 @@ export function replyBytes(reply, id) {
   return isTorrentBytes(bytes) ? bytes : null;
 }
 
-// Asks one tab at a time. A tab is first asked only whether it has a frame of
-// the origin: the URL itself (on private trackers it may carry a passkey) goes
-// only to tabs of that site, not into every page's renderer. A tab without
-// such a frame answers at once (nobody responds, the message port closes).
+// What a tab of the site is asked to fetch: the URL the browser ended up
+// downloading from, not the one the download started at. item.url may be a
+// page that only redirected (by script, as "your download starts in..." pages
+// do) and a foreign page may have picked it; fetched again from the site's tab
+// it would go out as the site's own request, which the browser never made.
+// finalUrl is the request the site's own page did make; pageOriginFor has
+// checked it is on the site's origin.
+export function pageRequest(item, origin) {
+  return {id: item.id, url: item.finalUrl || item.url, origin};
+}
+
+// Only the top frame of a tab is asked. A message without a frameId goes to
+// every frame, so each same-origin frame (widgets, chat) would fetch the file
+// again and the URL would reach the content scripts of cross-origin frames
+// (ads) too. The top frame of a tab of the site has the same cookies, and its
+// fetch the same Referer origin and Sec-Fetch-Site as any frame of that site,
+// so a link inside a frame of the site's own page loses nothing. A frame of
+// the site on a foreign page is never asked itself: the fetch then comes from
+// another tab of the site if one is open, or from the extension.
+export async function fetchInTabs(tabsApi, item, origin, deadline) {
+  const tabs = orderTabs(await tabsApi.query({}), item);
+  return askTabs(tabs, pageRequest(item, origin), (tabId, msg) => tabsApi.sendMessage(tabId, msg, {frameId: 0}), deadline);
+}
+
+// Asks one tab at a time. A tab is first asked only whether its top frame is
+// of the origin: the URL itself (on private trackers it may carry a passkey)
+// goes only to tabs of that site, not into every page's renderer. A tab of
+// another site answers at once (nobody responds, the message port closes).
 // All tabs of a site share its cookies, so the first one that can fetch is as
 // good as any and the site gets one extra request, not one per open tab.
 export async function askTabs(tabs, req, send, deadline, now = Date.now) {

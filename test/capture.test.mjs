@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   pageOriginFor, frameMayFetch, frameIsOf, orderTabs, askTabs, acquireTorrent, mayReceive, replyBytes,
+  pageRequest, fetchInTabs,
 } from '../src/js/lib/capture.js';
 import {toBase64} from '../src/js/lib/torrent.js';
 
@@ -139,6 +140,57 @@ test('askTabs', async (t) => {
       assert.equal(bytes, null);
       assert.ok(Date.now() - started < 500, `${hang}: took ${Date.now() - started} ms`);
     }
+  });
+});
+
+test('fetchInTabs', async (t) => {
+  // A fake chrome.tabs recording what goes where.
+  const fakeTabs = (tabs, answer) => {
+    const sent = [];
+    const api = {
+      query: async (q) => {
+        assert.deepEqual(q, {});
+        return tabs;
+      },
+      async sendMessage(tabId, msg, options) {
+        assert.equal(this, api, 'called as a method of chrome.tabs');
+        sent.push({tabId, msg, options});
+        return answer(tabId, msg);
+      },
+    };
+    return {api, sent};
+  };
+  const good = (id) => ({id, data: toBase64(TORRENT)});
+
+  await t.test('the URL the browser ended up at, not the one a redirecting page started at', async () => {
+    // A foreign page sent the browser to the site's "download starts in..."
+    // page, whose script went on to the file.
+    const item = {
+      id: 9,
+      url: RT + '/forum/jsgo.php?u=/forum/export.php',
+      finalUrl: RT + '/forum/export.php',
+      referrer: RT + '/forum/jsgo.php?u=/forum/export.php',
+    };
+    const origin = pageOriginFor(item);
+    assert.equal(origin, RT);
+    const {api, sent} = fakeTabs([{id: 1, active: true}], (tabId, msg) => msg.torrentProbe ? true : good(9));
+    assert.deepEqual(await fetchInTabs(api, item, origin, Date.now() + 1000), TORRENT);
+    const fetches = sent.filter((s) => s.msg.fetchTorrent);
+    assert.equal(fetches.length, 1);
+    assert.deepEqual(fetches[0].msg.fetchTorrent, {id: 9, url: item.finalUrl, origin: RT});
+  });
+
+  await t.test('item.url while there is no finalUrl', () => {
+    assert.deepEqual(pageRequest({...rutracker, finalUrl: undefined}, RT), {id: 7, url: rutracker.url, origin: RT});
+    assert.deepEqual(pageRequest({...rutracker, finalUrl: ''}, RT), {id: 7, url: rutracker.url, origin: RT});
+  });
+
+  await t.test('only top frames are asked, the probe and the fetch alike', async () => {
+    const {api, sent} = fakeTabs([{id: 1, lastAccessed: 5}, {id: 2, active: true}, {id: 3, incognito: true}],
+        (tabId, msg) => msg.torrentProbe ? tabId === 1 : good(7));
+    assert.deepEqual(await fetchInTabs(api, rutracker, RT, Date.now() + 1000), TORRENT);
+    assert.deepEqual(sent.map((s) => [s.tabId, Object.keys(s.msg)[0]]), [[2, 'torrentProbe'], [1, 'torrentProbe'], [1, 'fetchTorrent']]);
+    for (const s of sent) assert.deepEqual(s.options, {frameId: 0}, JSON.stringify(s));
   });
 });
 

@@ -1,6 +1,6 @@
 import {magnetPageUrl, downloadPageUrl, isDownloadPage, isWebtorDownload} from './lib/webtor';
 import {MAX_TORRENT_BYTES, isTorrentDownload, fetchCapped} from './lib/torrent';
-import {acquireTorrent, askTabs, orderTabs, mayReceive} from './lib/capture';
+import {acquireTorrent, fetchInTabs, mayReceive} from './lib/capture';
 import TorrentCache from './lib/torrentCache';
 
 const cache = new TorrentCache();
@@ -59,7 +59,7 @@ async function onDownloaded(id) {
     return;
   }
   const bytes = await acquireTorrent(item, {
-    inPage: fetchInTabs,
+    inPage: (item, origin, deadline) => fetchInTabs(chrome.tabs, item, origin, deadline),
     direct: (item, ms) => fetchCapped(item.finalUrl || item.url, {signal: AbortSignal.timeout(ms)}),
     log: (m) => console.log('download', id, m),
   });
@@ -73,9 +73,4 @@ async function onDownloaded(id) {
     cache.delete(id);
     console.log('download', id, 'tab not opened', e);
   });
-}
-
-async function fetchInTabs(item, origin, deadline) {
-  const tabs = orderTabs(await chrome.tabs.query({}), item);
-  return askTabs(tabs, {id: item.id, url: item.url, origin}, (tabId, msg) => chrome.tabs.sendMessage(tabId, msg), deadline);
 }
