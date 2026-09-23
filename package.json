@@ -1,7 +1,7 @@
 {
   "name": "webtor.io",
-  "version": "0.1.12",
-  "description": "Any torrents are available online. Just open torrent-file and start watching absolutely free and without registration.",
+  "version": "0.1.13",
+  "description": "Opens magnet links and .torrent files in Webtor instead of a torrent client: stream or download in your browser, free, no sign-up.",
   "devDependencies": {
     "archiver": "^7.0.1",
     "clean-webpack-plugin": "^4.0.0",
