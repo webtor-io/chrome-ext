@@ -1,27 +1,25 @@
-import queryString from 'query-string';
 import loadTorrentById from './lib/loadTorrentById';
+import {magnetPageUrl, downloadPageUrl, isDownloadPage} from './lib/webtor';
 
-function openTab({magnet, downloadId}) {
-  chrome.tabs.create({
-      url: 'https://webtor.io/show?' + queryString.stringify({magnet, downloadId})
-  }, function(window) {});
+function openTab(url) {
+  chrome.tabs.create({url}, function(window) {});
 }
 
-chrome.runtime.onMessage.addListener(async (msg) => {
+chrome.runtime.onMessage.addListener(async (msg, sender) => {
   if (msg.url) {
-    openTab({magnet: msg.url});
+    openTab(magnetPageUrl(msg.url));
   }
   if (msg.downloadId) {
+    if (!sender.tab || !isDownloadPage(sender.url)) {
+      console.log('ignore download request from', sender.url);
+      return;
+    }
     const torrent = await loadTorrentById(msg.downloadId);
     if (torrent) {
-      console.log('post message torrent', torrent);
-      chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-        const uint8Array = new Uint8Array(torrent);
-        const arr = Array.from(uint8Array);
-        chrome.tabs.sendMessage(tabs[0].id, {torrent: arr}, function(response) {
-          console.log('Message sent with torrent data', arr);
-        });
-      });
+      const arr = Array.from(new Uint8Array(torrent));
+      // Back to the frame that asked, not to whatever tab is active: that
+      // may be another site, possibly framing the webtor page.
+      chrome.tabs.sendMessage(sender.tab.id, {torrent: arr}, {frameId: sender.frameId});
     } else {
       console.log('no torrent');
     }
@@ -35,7 +33,7 @@ chrome.downloads.onChanged.addListener(async function(item) {
     ) {
     const torrent = await loadTorrentById(item.id);
     if (torrent) {
-      openTab({downloadId: item.id});
+      openTab(downloadPageUrl(item.id));
     }
   }
 });

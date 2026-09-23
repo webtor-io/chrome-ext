@@ -1,5 +1,6 @@
 if (window.webtorInjected) return;
 const debug = require('debug')('webtor:ext:inject');
+const {isDownloadPage, torrentPageMessage} = require('./lib/webtor');
 
 for (let link of document.links) {
   if (/^magnet/.test(link.href)) {
@@ -28,17 +29,13 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.torrent) {
     debug('window post message torrent=%o', msg.torrent);
     const uint8Array = new Uint8Array(msg.torrent);
-    console.log(uint8Array);
-    window.postMessage({
-      torrent: uint8Array.buffer,
-      ver: VERSION,
-    }, '*', [uint8Array.buffer]);
+    window.postMessage(torrentPageMessage(uint8Array, VERSION), '*', [uint8Array.buffer]);
     clearInterval(t);
   }
 });
 debug('injected ver=%s', VERSION);
 window.webtorInjected = true;
-if (window.location.href.includes('/ext/download?id=')) {
+if (isDownloadPage(window.location.href)) {
   let i = 0;
   t = setInterval(() => {
     if (i > 10) clearInterval(t);
