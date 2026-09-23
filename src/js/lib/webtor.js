@@ -14,6 +14,12 @@ export function downloadPageUrl(downloadId) {
 // The only page allowed to ask for a downloaded .torrent is the one the
 // extension opens itself after a download finishes. Any other page asking
 // would let a site walk download ids and read the user's .torrent files.
+//
+// web-ui 302s /ext/download to /<lang>/ext/download for anyone whose lang
+// cookie is not English (any visit to a /ru/, /de/... page sets it), so the
+// page the tab lands on may carry a two-letter language prefix.
+const DOWNLOAD_PATH = /^\/(?:[a-z]{2}\/)?ext\/download$/;
+
 export function isDownloadPage(url) {
   let u;
   try {
@@ -21,7 +27,7 @@ export function isDownloadPage(url) {
   } catch (e) {
     return false;
   }
-  return u.origin === WEBTOR_URL && u.pathname === '/ext/download';
+  return u.origin === WEBTOR_URL && DOWNLOAD_PATH.test(u.pathname);
 }
 
 // web-ui's /ext/download page (assets/src/js/app/ext/download.js) reads the

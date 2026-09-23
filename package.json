@@ -16,7 +16,8 @@
   },
   "scripts": {
     "watch": "webpack watch",
-    "build": "webpack"
+    "build": "webpack",
+    "test": "node --experimental-detect-module --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test 'test/*.test.mjs'"
   },
   "author": "Pavel Tatarskiy",
   "license": "MIT"
