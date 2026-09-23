@@ -30,6 +30,26 @@ export function isDownloadPage(url) {
   return u.origin === WEBTOR_URL && DOWNLOAD_PATH.test(u.pathname);
 }
 
+function isWebtorHost(url) {
+  let u;
+  try {
+    u = new URL(url);
+  } catch (e) {
+    return false;
+  }
+  if (u.protocol !== 'https:' && u.protocol !== 'http:') return false;
+  const host = u.hostname.replace(/\.$/, '');
+  return host === 'webtor.io' || host.endsWith('.webtor.io');
+}
+
+// A .torrent taken from Webtor is already in Webtor: opening it there again
+// only brings the user back to the page they downloaded it from. Webtor pages
+// may hand out files from hosts other than webtor.io, so the page the
+// download started on counts as much as the file's own address.
+export function isWebtorDownload(item) {
+  return isWebtorHost(item.url) || isWebtorHost(item.finalUrl) || isWebtorHost(item.referrer);
+}
+
 // web-ui's /ext/download page (assets/src/js/app/ext/download.js) reads the
 // bytes from `torrent` only when ver <= 0.1.12 and from `torrent.data` for
 // every later version, so the bytes travel under `data`.

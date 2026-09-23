@@ -1,5 +1,5 @@
 import loadTorrentById from './lib/loadTorrentById';
-import {magnetPageUrl, downloadPageUrl, isDownloadPage} from './lib/webtor';
+import {magnetPageUrl, downloadPageUrl, isDownloadPage, isWebtorDownload} from './lib/webtor';
 
 function openTab(url) {
   chrome.tabs.create({url}, function(window) {});
@@ -31,6 +31,11 @@ chrome.downloads.onChanged.addListener(async function(item) {
       && item.state.current == 'complete'
       && item.state.previous == 'in_progress'
     ) {
+    const [download] = await chrome.downloads.search({id: item.id});
+    if (download && isWebtorDownload(download)) {
+      console.log('download', item.id, 'is from webtor.io, leaving it as it is');
+      return;
+    }
     const torrent = await loadTorrentById(item.id);
     if (torrent) {
       openTab(downloadPageUrl(item.id));

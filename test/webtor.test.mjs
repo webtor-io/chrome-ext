@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {isDownloadPage, downloadPageUrl} from '../src/js/lib/webtor.js';
+import {isDownloadPage, downloadPageUrl, isWebtorDownload} from '../src/js/lib/webtor.js';
 
 // web-ui 302s the bare /ext/download to /<lang>/ext/download for anyone whose
 // lang cookie is not English, so the localized page must pass as well.
@@ -41,5 +41,48 @@ test('anything else on webtor.io or elsewhere does not', async (t) => {
     undefined,
   ]) {
     await t.test(String(url), () => assert.equal(isDownloadPage(url), false));
+  }
+});
+
+// A .torrent taken from Webtor must not be sent back to Webtor.
+test('downloads from webtor.io are left alone', async (t) => {
+  for (const item of [
+    {url: 'https://webtor.io/abc.torrent'},
+    {url: 'https://webtor.io/ru/abc.torrent?token=x'},
+    {url: 'http://webtor.io/abc.torrent'},
+    {url: 'https://sub.webtor.io/abc.torrent'},
+    {url: 'https://a.b.webtor.io/abc.torrent'},
+    {url: 'https://WEBTOR.IO/abc.torrent'},
+    {url: 'https://webtor.io./abc.torrent'},
+    {url: 'https://webtor.io:8443/abc.torrent'},
+    {url: 'https://files.example/x', finalUrl: 'https://webtor.io/abc.torrent'},
+    {url: 'https://files.example/x', finalUrl: 'https://cdn.webtor.io/abc.torrent'},
+    // Served from another host, started on a webtor page.
+    {url: 'https://files.example/abc.torrent', referrer: 'https://webtor.io/'},
+    {url: 'https://files.example/abc.torrent', referrer: 'https://webtor.io/ru/12ab34cd'},
+    {url: 'https://files.example/abc.torrent', referrer: 'https://www.webtor.io/x'},
+  ]) {
+    await t.test(JSON.stringify(item), () => assert.equal(isWebtorDownload(item), true));
+  }
+});
+
+test('downloads from anywhere else are taken', async (t) => {
+  for (const item of [
+    {url: 'https://rutracker.org/forum/dl.php?t=1', finalUrl: 'https://rutracker.org/forum/dl.php?t=1', referrer: 'https://rutracker.org/forum/viewtopic.php?t=1'},
+    {url: 'https://files.example/abc.torrent'},
+    {url: 'https://files.example/abc.torrent', finalUrl: 'https://cdn.example/abc.torrent', referrer: ''},
+    {url: 'https://webtor.io.evil.example/abc.torrent'},
+    {url: 'https://evilwebtor.io/abc.torrent'},
+    {url: 'https://webtor.iox/abc.torrent'},
+    {url: 'https://evil.example/webtor.io/abc.torrent'},
+    {url: 'https://evil.example/abc.torrent?r=https://webtor.io/'},
+    {url: 'https://evil.example/abc.torrent', referrer: 'https://evil.example/?from=https://webtor.io/'},
+    {url: 'https://webtor.io@evil.example/abc.torrent'},
+    {url: 'file:///Users/me/webtor.io/abc.torrent'},
+    {url: 'data:application/x-bittorrent,d4:infode'},
+    {url: 'blob:https://evil.example/1234'},
+    {url: 'not a url', finalUrl: undefined, referrer: undefined},
+  ]) {
+    await t.test(JSON.stringify(item), () => assert.equal(isWebtorDownload(item), false));
   }
 });
