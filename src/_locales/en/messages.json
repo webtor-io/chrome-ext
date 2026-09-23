@@ -4,7 +4,7 @@
     "description": "The title of the application, displayed in the web store."
   },
   "appDesc": {
-    "message": "Any torrents are available online. Just open torrent-file and start watching absolutely free and without registration.",
-    "description": "The description of the application, displayed in the web store."
+    "message": "Opens magnet links and .torrent files in Webtor instead of a torrent client: stream or download in your browser, free, no sign-up.",
+    "description": "The description of the application, displayed in the web store. At most 132 characters (Chrome rejects longer ones). Say what the extension does with links the user clicks; do not promise content."
   }
 }
